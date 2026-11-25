@@ -1,0 +1,7 @@
+# Zależności strony (pakiet pdf2dxf instalowany osobno z katalogu "../pdf to dwg").
+# Wersje sprawdzone lokalnie 2026-11-25.
+pymupdf==1.28.2
+ezdxf==1.4.5
+starlette==1.10.0
+uvicorn==0.54.0
+python-multipart==0.0.34

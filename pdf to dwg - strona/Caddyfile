@@ -1,0 +1,15 @@
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# o kilka MB więcej niż PDF2DWG_MAX_UPLOAD_MB (pola formularza)
+	request_body {
+		max_size 60MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	reverse_proxy web:8000
+}

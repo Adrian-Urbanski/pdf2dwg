@@ -1,0 +1,17 @@
+# Nigdy nie publikować: rysunków, wyników konwersji, programów, środowisk i ustawień lokalnych.
+*.pdf
+*.dxf
+*.dwg
+*.zip
+*.exe
+samples/
+out/
+build/
+dist/
+*.egg-info/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.claude/

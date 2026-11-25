@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pl" class="mode-{{mode}}">
+<head>
+  <!-- Szablon: znaczniki w podwójnych klamrach podstawia app/page.py zależnie od tego, czy serwer zapisuje DWG. -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}} | PDF2DWG</title>
+  <meta name="description" content="{{description}}">
+  <meta property="og:title" content="{{title}}">
+  <meta property="og:description" content="{{og_description}}">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#1b5fd6">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" aria-label="PDF2DWG — strona główna">
+        <img src="/static/favicon.svg" alt="" width="28" height="28">
+        <span>PDF<b>2</b>DWG</span>
+      </a>
+      <nav class="nav">
+        <a href="#jak">Jak to działa</a>
+        <a href="#faq">Pytania</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <h1>{{h1}}</h1>
+        <p class="lead">{{lead}}</p>
+        <ul class="badges" aria-label="Zalety">
+          <li>Bez limitu plików</li>
+          <li>Bez rejestracji</li>
+          <li>Bez znaku wodnego</li>
+          <li>Pliki kasowane po {{retention}} min</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap converter" aria-labelledby="conv-title">
+      <h2 id="conv-title" class="visually-hidden">Konwersja</h2>
+
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="file-input" accept=".pdf,application/pdf" multiple>
+        <svg class="drop-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M14 6h14l10 10v26a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M28 6v10h10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M24 37V23m-6 6 6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="drop-title">Upuść pliki PDF tutaj</span>
+        <span class="drop-sub">albo <u>kliknij, aby wybrać</u> · do {{max_mb}} MB i {{max_pages}} stron na plik</span>
+      </label>
+
+      <form class="settings" id="settings" autocomplete="off">
+        <div class="field dwg-only">
+          <span class="field-label" id="lbl-format">Format</span>
+          <div class="segmented" role="radiogroup" aria-labelledby="lbl-format">
+            <label><input type="radio" name="format" value="dwg" checked><span>DWG</span></label>
+            <label><input type="radio" name="format" value="dxf"><span>DXF</span></label>
+          </div>
+        </div>
+        <label class="field dwg-only" id="field-dwg-version">
+          <span class="field-label">Wersja DWG</span>
+          <select name="dwg_version" id="dwg-version"></select>
+        </label>
+        <label class="field">
+          <span class="field-label">Skala rysunku</span>
+          <span class="scale-input"><span aria-hidden="true">1 :</span>
+            <input type="text" name="scale" value="1" inputmode="decimal" aria-label="Skala, np. 50 dla 1:50"></span>
+        </label>
+        <label class="field">
+          <span class="field-label">Jednostki</span>
+          <select name="units">
+            <option value="mm" selected>milimetry</option>
+            <option value="cm">centymetry</option>
+            <option value="m">metry</option>
+            <option value="in">cale</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Krzywe</span>
+          <select name="curves">
+            <option value="spline" selected>gładkie (SPLINE)</option>
+            <option value="polyline">polilinie (CNC, laser)</option>
+          </select>
+        </label>
+
+        <details class="more">
+          <summary>Więcej opcji</summary>
+          <div class="more-grid">
+            <label class="field">
+              <span class="field-label">Strony</span>
+              <input type="text" name="pages" placeholder="wszystkie, np. 1,3-5">
+            </label>
+            <label class="field">
+              <span class="field-label">Wypełnienia</span>
+              <select name="fills">
+                <option value="hatch" selected>kreskowanie (HATCH)</option>
+                <option value="outline">tylko kontur</option>
+                <option value="ignore">pomiń</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Warstwy</span>
+              <select name="layers">
+                <option value="by-color" selected>według koloru</option>
+                <option value="by-ocg">z warstw PDF</option>
+                <option value="single">jedna warstwa</option>
+              </select>
+            </label>
+            <div class="checks">
+              <label><input type="checkbox" name="single_file"> wszystkie strony w jednym pliku</label>
+              <label><input type="checkbox" name="join"> sklejaj odcinki w ciągłe kontury</label>
+              <label><input type="checkbox" name="detect_arcs" checked> rozpoznawaj okręgi i łuki</label>
+              <label><input type="checkbox" name="text" checked> przenoś tekst</label>
+              <label><input type="checkbox" name="merge_text"> łącz fragmenty tekstu w linie</label>
+            </div>
+          </div>
+        </details>
+        <p class="settings-note dxf-only">Pobierzesz plik DXF — otworzysz go w AutoCAD, BricsCAD,
+          ZWCAD i każdym innym programie CAD.</p>
+      </form>
+
+      <div class="list-head" id="list-head" hidden>
+        <h2>Twoje pliki</h2>
+        <div class="list-actions">
+          <button type="button" class="btn btn-ghost" id="reconvert-all">Konwertuj ponownie z obecnymi ustawieniami</button>
+          <button type="button" class="btn" id="download-all" hidden>Pobierz wszystkie</button>
+        </div>
+      </div>
+      <ul class="files" id="files" aria-live="polite"></ul>
+    </section>
+
+    <section class="wrap info" id="jak">
+      <h2>Jak to działa</h2>
+      <ol class="steps">
+        <li><b>Wgraj PDF</b><span>Rysunek wyeksportowany z AutoCAD, Revit, ArchiCAD, Inkscape albo programu graficznego.</span></li>
+        <li><b>Ustaw skalę</b><span>Arkusz w skali 1:50? Wpisz 50 — wymiary w {{target}} będą rzeczywiste.</span></li>
+        <li><b>Pobierz {{target}}</b><span>Otwórz w AutoCAD, BricsCAD, ZWCAD, DraftSight albo wyślij na maszynę CNC.</span></li>
+      </ol>
+
+      <div class="cols">
+        <div>
+          <h3>Co jest przenoszone</h3>
+          <ul class="ticks">
+            <li>linie, polilinie i prostokąty</li>
+            <li>okręgi i łuki — jako prawdziwe <code>CIRCLE</code> i <code>ARC</code></li>
+            <li>krzywe — jako <code>SPLINE</code> albo polilinie</li>
+            <li>wypełnienia (<code>HATCH</code>), kolory, grubości i linie przerywane</li>
+            <li>tekst z polskimi znakami</li>
+            <li>warstwy, strony obrócone, pliki wielostronicowe</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Czego nie da się przenieść</h3>
+          <ul class="crosses">
+            <li>skanów i zdjęć — to obrazy, nie linie (wymagają wektoryzacji)</li>
+            <li>bloków i wymiarów asocjacyjnych — PDF ich nie przechowuje</li>
+            <li>dokładnego kroju czcionki — tekst dostaje font Arial</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap info" id="faq">
+      <h2>Pytania</h2>
+      <details>
+        <summary>Czy to naprawdę jest bez limitu?</summary>
+        <p>Tak — bez dziennego limitu plików, bez konta i bez znaku wodnego. Jedyne ograniczenia
+          są techniczne i chronią serwer: rozmiar jednego pliku ({{max_mb}} MB),
+          liczba stron konwertowanych naraz ({{max_pages}}) i czas jednej
+          konwersji. Większy dokument możesz przekonwertować w częściach, wybierając strony.</p>
+      </details>
+      <details>
+        <summary>Co się dzieje z moimi plikami?</summary>
+        <p>Plik jest przetwarzany na serwerze i nikt go nie przegląda. PDF i wynik są kasowane
+          automatycznie {{retention}} minut po konwersji — albo od razu, gdy
+          klikniesz „Usuń”. Nie używamy plików cookie ani narzędzi śledzących.</p>
+      </details>
+      <details>
+        <summary>Dlaczego mój PDF się nie konwertuje?</summary>
+        <p>Najczęściej to skan albo zdjęcie rysunku — taki PDF zawiera obraz, a nie linie.
+          Konwerter rozpoznaje to i zgłasza. Działa tylko z PDF-ami <em>wektorowymi</em>, czyli
+          zapisanymi bezpośrednio z programu (eksport, „drukuj do PDF”).</p>
+      </details>
+      <details>
+        <summary>Jak ustawić skalę?</summary>
+        <p>PDF nie przechowuje skali rysunku. Jeśli arkusz był w skali 1:50, wpisz 50 —
+          współrzędne zostaną pomnożone i wymiary w {{target}} będą rzeczywiste. Grubości linii nie
+          podlegają skali, a wysokość tekstu i kreski linii przerywanych — tak.</p>
+      </details>
+      <details>
+        <summary>SPLINE czy polilinie?</summary>
+        <p>SPLINE daje gładkie, dokładne krzywe — najlepsze do dalszej pracy w CAD. Polilinie
+          wybierz dla maszyn CNC, ploterów i laserów, które nie obsługują SPLINE. Okręgi i łuki
+          zostają prawdziwymi okręgami i łukami w obu trybach.</p>
+      </details>
+      <details>
+        <summary>{{faq_format_q}}</summary>
+        <p>{{faq_format_a}}</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <p><b>PDF2DWG</b> — darmowy konwerter wektorowych PDF do {{formats}}.</p>
+      <p class="footer-links">
+        <a id="source-link" href="#" hidden>Kod źródłowy (AGPL-3.0)</a>
+        <a id="contact-link" href="#" hidden>Kontakt</a>
+      </p>
+      <p class="footer-small">Pliki są kasowane automatycznie po {{retention}} min.
+        Brak plików cookie i analityki. Wynik konwersji sprawdź przed użyciem w produkcji.</p>
+    </div>
+  </footer>
+
+  <template id="file-template">
+    <li class="file">
+      <div class="thumb" aria-hidden="true"><img alt="" hidden></div>
+      <div class="file-main">
+        <div class="file-top">
+          <span class="file-name"></span>
+          <span class="file-size"></span>
+        </div>
+        <div class="status"><span class="status-dot"></span><span class="status-text"></span></div>
+        <div class="progress" hidden><span></span></div>
+        <p class="summary" hidden></p>
+        <details class="warnings" hidden><summary></summary><ul></ul></details>
+      </div>
+      <div class="file-actions">
+        <a class="btn btn-primary download" hidden download></a>
+        <button type="button" class="btn btn-ghost retry" hidden>Konwertuj ponownie</button>
+        <button type="button" class="btn btn-icon remove" aria-label="Usuń plik" title="Usuń">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </li>
+  </template>
+</body>
+</html>

@@ -1,0 +1,60 @@
+# Strona + Caddy (automatyczny certyfikat HTTPS z Let's Encrypt).
+# Uruchomienie na serwerze:  cp .env.example .env  →  uzupełnij  →  docker compose up -d --build
+
+x-logging: &logging        # rotacja logów: najwyżej 5 × 10 MB na usługę (RODO, wolne miejsce)
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  web:
+    build:
+      context: .
+      additional_contexts:
+        pdf2dxf: "../pdf to dwg"
+    env_file: .env
+    restart: unless-stopped
+    # Ochrona przed złośliwymi / trudnymi PDF-ami (patrz WDROZENIE.md, „Bezpieczeństwo”):
+    mem_limit: 3500m       # 2 konwersje × PDF2DWG_JOB_MEMORY_MB (1500) + serwer WWW
+    pids_limit: 512
+    read_only: true        # system plików tylko do odczytu, zapis tylko w /data i /tmp
+    cap_drop: [ALL]        # bez uprawnień jądra (aplikacja działa jako zwykły użytkownik)
+    security_opt:
+      - "no-new-privileges:true"
+    tmpfs:
+      - /tmp
+    volumes:
+      - jobs:/data         # pliki zadań — kasowane automatycznie po PDF2DWG_RETENTION_MINUTES
+    networks:
+      - backend            # tylko sieć wewnętrzna: aplikacja nie ma dostępu do internetu
+    logging: *logging
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?ustaw SITE_ADDRESS w pliku .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - default            # internet (ruch od użytkowników, certyfikaty)
+      - backend            # przekazywanie żądań do aplikacji
+    depends_on:
+      - web
+    logging: *logging
+
+networks:
+  backend:
+    internal: true
+
+volumes:
+  jobs:
+  caddy_data:
+  caddy_config:

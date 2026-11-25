@@ -1,0 +1,2 @@
+# Repozytorium trzyma pliki tekstowe z końcami linii LF (serwer to Linux), niezależnie od ustawień git u autora.
+* text=auto
